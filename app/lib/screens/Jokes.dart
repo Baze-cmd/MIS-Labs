@@ -51,12 +51,7 @@ class JokesState extends State<Jokes>
             appBar: AppBar(title: Text('${widget.type} jokes')),
             body: jokes.isEmpty
                 ? Center(child: CircularProgressIndicator())
-                : GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        crossAxisSpacing: 4.0,
-                        mainAxisSpacing: 2.0
-                    ),
+                : ListView.builder(
                     itemCount: jokes.length,
                     itemBuilder: (context, index)
                     {
