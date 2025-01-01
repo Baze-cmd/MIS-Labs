@@ -4,43 +4,63 @@ import '../models/Joke.dart';
 
 class Jokes extends StatefulWidget
 {
-    final String type;
+    final String? type;
+    final Set<Joke>? jokes;
+    final void Function(Joke)? onAddFavorite;
+    final void Function(Joke)? onRemoveFavorite;
 
-    Jokes({required this.type});
+    Jokes({this.type, this.jokes, this.onAddFavorite, this.onRemoveFavorite});
 
     @override
-    JokesState createState() => JokesState(type: this.type);
+    JokesState createState() => JokesState();
 }
 
 class JokesState extends State<Jokes>
 {
-    final String type;
     late List<Joke> jokes = [];
-
-    JokesState({required this.type});
 
     @override
     void initState()
     {
         super.initState();
-        loadJokes();
+        if (widget.jokes != null)
+        {
+            jokes = widget.jokes!.toList();
+        }
+        else if (widget.type != null)
+        {
+            loadJokes();
+        }
     }
 
     Future<void> loadJokes() async
     {
         try
         {
-            JokesService jokesService = new JokesService();
-            List<Joke> fetchedJokes = await jokesService.getJokes(this.type);
+            JokesService jokesService = JokesService();
+            List<Joke> fetchedJokes = await jokesService.getJokes(widget.type!);
             setState(()
                 {
-                    this.jokes = fetchedJokes;
+                    jokes = fetchedJokes;
                 }
             );
         }
-        catch(e)
+        catch (e)
         {
             print("Error fetching jokes: $e");
+        }
+    }
+
+    void removeJoke(Joke joke)
+    {
+        if (widget.onRemoveFavorite != null)
+        {
+            widget.onRemoveFavorite!(joke); // Notify parent to remove joke
+            setState(()
+                {
+                    jokes.remove(joke); // Update local state
+                }
+            );
         }
     }
 
@@ -48,7 +68,11 @@ class JokesState extends State<Jokes>
     Widget build(BuildContext context)
     {
         return Scaffold(
-            appBar: AppBar(title: Text('${widget.type} jokes')),
+            appBar: AppBar(
+                title: Text(widget.type != null
+                        ? '${widget.type} jokes'
+                        : 'Favorites')
+            ),
             body: jokes.isEmpty
                 ? Center(child: CircularProgressIndicator())
                 : ListView.builder(
@@ -61,7 +85,34 @@ class JokesState extends State<Jokes>
                             child: ListTile(
                                 contentPadding: EdgeInsets.all(15),
                                 title: Text(joke.setup, style: TextStyle(fontSize: 18)),
-                                subtitle: Text(joke.punchline, style: TextStyle(fontSize: 16))
+                                subtitle: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                        Text(joke.punchline, style: TextStyle(fontSize: 16)),
+                                        SizedBox(height: 10),
+                                        widget.type != null ?
+                                            ElevatedButton(
+                                                onPressed: ()
+                                                {
+                                                    widget.onAddFavorite!(joke);
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                        SnackBar(
+                                                            content: Text("Added to favorites!")
+                                                        )
+                                                    );
+                                                },
+                                                child: Text("Add to Favorites")
+                                            ) : ElevatedButton(onPressed: ()
+                                                {
+                                                    removeJoke(joke);
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                        SnackBar(
+                                                            content: Text("Removed from favorites!")
+                                                        )
+                                                    );
+                                                }, child: Text("Remove from favorites"))
+                                    ]
+                                )
                             )
                         );
                     }

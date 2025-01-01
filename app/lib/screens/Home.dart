@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'Jokes.dart';
 import 'RandomJoke.dart';
 import '../services/api_services.dart';
+import '../models/Joke.dart';
 
 class Home extends StatefulWidget
 {
@@ -13,6 +14,21 @@ class HomeState extends State<Home>
 {
     final String index = "216089";
     late List<String> types = [];
+    Set<Joke> favorites = {};
+
+    void addFavorites(Joke joke)
+    {
+      setState(() {
+        this.favorites.add(joke);
+      });
+    }
+
+    void removeFavorite(Joke joke)
+    {
+        setState(() {
+          this.favorites.remove(joke);
+        });
+    }
 
     @override
     void initState()
@@ -44,9 +60,19 @@ class HomeState extends State<Home>
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => Jokes(type: type)
+                builder: (context) => Jokes(type: type, onAddFavorite: addToFavorites, onRemoveFavorite: removeFavorite,)
             )
         );
+    }
+
+    void addToFavorites(Joke joke)
+    {
+        favorites.add(joke);
+    }
+
+    void removeFromFavorites(Joke joke)
+    {
+        favorites.remove(joke);
     }
 
     @override
@@ -72,6 +98,19 @@ class HomeState extends State<Home>
                                 foregroundColor: Colors.black
                             ),
                             child: const Text("Get random joke")
+                        ),ElevatedButton(
+                            onPressed: ()
+                            {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => Jokes(type: null, jokes: this.favorites, onAddFavorite: addToFavorites, onRemoveFavorite: removeFromFavorites,))
+                                );
+                            },
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: Colors.black
+                            ),
+                            child: const Text("Favorites")
                         )
                     ]
                 )
