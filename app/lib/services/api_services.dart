@@ -46,5 +46,4 @@ class JokesService
             throw Exception('Failed to get random joke: ${response.statusCode}');
         }
     }
-
 }

@@ -3,6 +3,7 @@ import 'Jokes.dart';
 import 'RandomJoke.dart';
 import '../services/api_services.dart';
 import '../models/Joke.dart';
+import '../services/AuthService.dart';
 
 class Home extends StatefulWidget
 {
@@ -12,29 +13,35 @@ class Home extends StatefulWidget
 
 class HomeState extends State<Home>
 {
+    final AuthService _authService = AuthService();
+    final User = {};
     final String index = "216089";
     late List<String> types = [];
     Set<Joke> favorites = {};
-
-    void addFavorites(Joke joke)
-    {
-      setState(() {
-        this.favorites.add(joke);
-      });
-    }
-
-    void removeFavorite(Joke joke)
-    {
-        setState(() {
-          this.favorites.remove(joke);
-        });
-    }
 
     @override
     void initState()
     {
         super.initState();
         loadTypes();
+    }
+
+    void addFavorites(Joke joke)
+    {
+        setState(()
+            {
+                favorites.add(joke);
+            }
+        );
+    }
+
+    void removeFavorite(Joke joke)
+    {
+        setState(()
+            {
+                favorites.remove(joke);
+            }
+        );
     }
 
     Future<void> loadTypes() async
@@ -49,7 +56,7 @@ class HomeState extends State<Home>
                 }
             );
         }
-        catch(e)
+        catch (e)
         {
             print("Error fetching types: $e");
         }
@@ -60,19 +67,10 @@ class HomeState extends State<Home>
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => Jokes(type: type, onAddFavorite: addToFavorites, onRemoveFavorite: removeFavorite,)
+                builder: (context) =>
+                Jokes(type: type, onAddFavorite: addFavorites, onRemoveFavorite: removeFavorite)
             )
         );
-    }
-
-    void addToFavorites(Joke joke)
-    {
-        favorites.add(joke);
-    }
-
-    void removeFromFavorites(Joke joke)
-    {
-        favorites.remove(joke);
     }
 
     @override
@@ -80,39 +78,66 @@ class HomeState extends State<Home>
     {
         return Scaffold(
             appBar: AppBar(
-                title: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                        Text(this.index),
-                        const SizedBox(width: 10),
-                        ElevatedButton(
-                            onPressed: ()
-                            {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => RandomJoke())
-                                );
-                            },
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: Colors.black
+                title: SingleChildScrollView( // Allow horizontal scrolling
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                        children: [
+                            Text(this.index),
+                            const SizedBox(width: 10),
+                            Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                child: ElevatedButton(
+                                    onPressed: ()
+                                    {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(builder: (context) => RandomJoke())
+                                        );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: Colors.black,
+                                        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0)
+                                    ),
+                                    child: const Text("Get random joke", overflow: TextOverflow.ellipsis)
+                                )
                             ),
-                            child: const Text("Get random joke")
-                        ),ElevatedButton(
-                            onPressed: ()
-                            {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => Jokes(type: null, jokes: this.favorites, onAddFavorite: addToFavorites, onRemoveFavorite: removeFromFavorites,))
-                                );
-                            },
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: Colors.black
+                            const SizedBox(width: 5),
+                            Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                child: ElevatedButton(
+                                    onPressed: ()
+                                    {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) => Jokes(type: null, jokes: this.favorites, onAddFavorite: addFavorites, onRemoveFavorite: removeFavorite))
+                                        );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: Colors.black,
+                                        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0)
+                                    ),
+                                    child: const Text("Favorites", overflow: TextOverflow.ellipsis)
+                                )
                             ),
-                            child: const Text("Favorites")
-                        )
-                    ]
+                            const SizedBox(width: 5),
+                            Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                child: ElevatedButton(
+                                    onPressed: () async
+                                    {
+                                        Navigator.pushReplacementNamed(context, '/');
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0)
+                                    ),
+                                    child: const Text("Logout", overflow: TextOverflow.ellipsis)
+                                )
+                            )
+                        ]
+                    )
                 )
             ),
             body: Column(
@@ -136,6 +161,4 @@ class HomeState extends State<Home>
             )
         );
     }
-
 }
-
